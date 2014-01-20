@@ -1,0 +1,12 @@
+#
+# simInt simImportMesh(simInt fileformat,const simChar* pathAndFilename,simInt options,
+# simFloat identicalVerticeTolerance,simFloat scalingFactor,simFloat*** vertices,simInt** verticesSizes,
+# simInt*** indices,simInt** indicesSizes,simFloat*** reserved,simChar*** names)
+#
+int32 	fileFormat
+string 	fileName
+int32 	options
+float32 identicalVerticeTolerance
+#float32	scalingFactor
+---
+int32 result
