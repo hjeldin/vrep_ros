@@ -198,6 +198,7 @@ ros::ServiceServer ROS_server::simRosSetJointStateServer;
 ros::ServiceServer ROS_server::simRosCreateDummyServer;
 ros::ServiceServer ROS_server::simRosGetAndClearStringSignalServer;
 ros::ServiceServer ROS_server::simRosGetObjectGroupDataServer;
+ros::ServiceServer ROS_server::simRosImportMeshServer;
 
 bool ROS_server::initialize()
 {
@@ -1953,6 +1954,7 @@ void ROS_server::enableAPIServices()
 	simRosCreateDummyServer = node->advertiseService("simRosCreateDummy",ROS_server::simRosCreateDummyService);
 	simRosGetAndClearStringSignalServer = node->advertiseService("simRosGetAndClearStringSignal",ROS_server::simRosGetAndClearStringSignalService);
 	simRosGetObjectGroupDataServer = node->advertiseService("simRosGetObjectGroupData",ROS_server::simRosGetObjectGroupDataService);
+	simRosImportMeshServer = node->advertiseService("simRosImportMesh",ROS_server::simRosImportMeshService);
 }
 
 void ROS_server::disableAPIServices()
@@ -2053,6 +2055,7 @@ void ROS_server::disableAPIServices()
 	simRosCreateDummyServer.shutdown();
 	simRosGetAndClearStringSignalServer.shutdown();
 	simRosGetObjectGroupDataServer.shutdown();
+	simRosImportMeshServer.shutdown();
 	_last50Errors.clear();
 }
 int ROS_server::_handleServiceErrors_start()
@@ -3346,6 +3349,42 @@ bool ROS_server::simRosGetObjectGroupDataService(vrep_common::simRosGetObjectGro
 			res.strings.push_back(stringData[i]);
 	}
 
+	_handleServiceErrors_end(errorModeSaved);
+	return true;
+}
+
+
+bool ROS_server::simRosImportMeshService(vrep_common::simRosImportMesh::Request &req,vrep_common::simRosImportMesh::Response &res)
+{
+	int errorModeSaved=_handleServiceErrors_start();
+	simFloat** vertices;
+	simInt* verticesSizes;
+	simInt** indices;
+	simInt* indicesSizes;
+	simChar** names;
+	simInt elementCount=simImportMesh(req.fileFormat,req.fileName.c_str(),req.options,req.identicalVerticeTolerance,1,&vertices,
+	                            &verticesSizes,&indices,&indicesSizes,NULL,&names);
+	if (elementCount>0)
+	{
+	    const float grey[3]={0.5f,0.5f,0.5f};
+	    for (int i=0;i<elementCount;i++)
+	    {
+	        simInt shapeHandle=simCreateMeshShape(2,20.0f*3.1415f/180.0f,vertices[i],
+	                               verticesSizes[i],indices[i],indicesSizes[i],NULL);
+	        simSetObjectName(shapeHandle,names[i]);
+	        simSetShapeColor(shapeHandle,"",0,grey);
+	        simReleaseBuffer(names[i]);
+	        simReleaseBuffer((simChar*)indices[i]);
+	        simReleaseBuffer((simChar*)vertices[i]);
+	    }
+	    simReleaseBuffer((simChar*)names);
+	    simReleaseBuffer((simChar*)indicesSizes);
+	    simReleaseBuffer((simChar*)indices);
+	    simReleaseBuffer((simChar*)verticesSizes);
+	    simReleaseBuffer((simChar*)vertices);
+	}
+
+	//res.intData.push_back(1);
 	_handleServiceErrors_end(errorModeSaved);
 	return true;
 }

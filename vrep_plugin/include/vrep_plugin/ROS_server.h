@@ -156,6 +156,9 @@
 #include "vrep_common/simRosGetAndClearStringSignal.h"
 #include "vrep_common/simRosGetObjectGroupData.h"
 
+// import mesh
+#include "vrep_common/simRosImportMesh.h"
+
 class SSpecificPublisherData 
 {
     public:
@@ -530,6 +533,9 @@ class ROS_server
 
 		static ros::ServiceServer simRosGetObjectGroupDataServer;
 		static bool simRosGetObjectGroupDataService(vrep_common::simRosGetObjectGroupData::Request &req,vrep_common::simRosGetObjectGroupData::Response &res);
+
+		static ros::ServiceServer simRosImportMeshServer;
+		static bool simRosImportMeshService(vrep_common::simRosImportMesh::Request &req,vrep_common::simRosImportMesh::Response &res);
 };
 
 #endif
