@@ -199,6 +199,7 @@ ros::ServiceServer ROS_server::simRosCreateDummyServer;
 ros::ServiceServer ROS_server::simRosGetAndClearStringSignalServer;
 ros::ServiceServer ROS_server::simRosGetObjectGroupDataServer;
 ros::ServiceServer ROS_server::simRosImportMeshServer;
+ros::ServiceServer ROS_server::simRosCreateCubeServer;
 
 bool ROS_server::initialize()
 {
@@ -1955,6 +1956,8 @@ void ROS_server::enableAPIServices()
 	simRosGetAndClearStringSignalServer = node->advertiseService("simRosGetAndClearStringSignal",ROS_server::simRosGetAndClearStringSignalService);
 	simRosGetObjectGroupDataServer = node->advertiseService("simRosGetObjectGroupData",ROS_server::simRosGetObjectGroupDataService);
 	simRosImportMeshServer = node->advertiseService("simRosImportMesh",ROS_server::simRosImportMeshService);
+
+	simRosCreateCubeServer = node->advertiseService("simRosCreateCube",ROS_server::simRosCreateCubeService);
 }
 
 void ROS_server::disableAPIServices()
@@ -2056,6 +2059,7 @@ void ROS_server::disableAPIServices()
 	simRosGetAndClearStringSignalServer.shutdown();
 	simRosGetObjectGroupDataServer.shutdown();
 	simRosImportMeshServer.shutdown();
+	simRosCreateCubeServer.shutdown();
 	_last50Errors.clear();
 }
 int ROS_server::_handleServiceErrors_start()
@@ -3351,6 +3355,27 @@ bool ROS_server::simRosGetObjectGroupDataService(vrep_common::simRosGetObjectGro
 
 	_handleServiceErrors_end(errorModeSaved);
 	return true;
+}
+
+bool ROS_server::simRosCreateCubeService(vrep_common::simRosCreateCube::Request &req,vrep_common::simRosCreateCube::Response &res)
+{
+	int errorModeSaved = _handleServiceErrors_start();
+	bool result = false;
+	simFloat cuboidSize;
+	simInt relativeToObj;
+	simFloat position[3] = {req.x,req.y,req.z};
+	simFloat sizes[3] = {req.size,req.size,req.size};
+	unsigned char bitmask = 0;
+	bitmask |= (1<<3);
+	bitmask |= (1<<4);
+	simInt cuboidHandle = simCreatePureShape(0,bitmask,sizes,req.mass,NULL);
+	if(cuboidHandle != -1)
+	{
+		if(simSetObjectPosition(cuboidHandle,-1,position) != -1)
+			result = true;
+	}
+	_handleServiceErrors_end(errorModeSaved);
+	return result;
 }
 
 

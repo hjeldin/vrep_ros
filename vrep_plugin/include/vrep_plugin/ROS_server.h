@@ -159,6 +159,8 @@
 // import mesh
 #include "vrep_common/simRosImportMesh.h"
 
+#include "vrep_common/simRosCreateCube.h"
+
 class SSpecificPublisherData 
 {
     public:
@@ -536,6 +538,9 @@ class ROS_server
 
 		static ros::ServiceServer simRosImportMeshServer;
 		static bool simRosImportMeshService(vrep_common::simRosImportMesh::Request &req,vrep_common::simRosImportMesh::Response &res);
+
+		static ros::ServiceServer simRosCreateCubeServer;
+		static bool simRosCreateCubeService(vrep_common::simRosCreateCube::Request &req,vrep_common::simRosCreateCube::Response &res);
 };
 
 #endif

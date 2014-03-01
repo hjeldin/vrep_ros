@@ -1,0 +1,10 @@
+#
+# simInt simCreatePureShape(simInt primitiveType,simInt options,const simFloat* sizes,simFloat mass,const simInt* precision)
+#
+float32 x
+float32 y
+float32 z
+float32 size
+float32 mass
+---
+int32 result
