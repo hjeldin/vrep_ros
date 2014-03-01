@@ -1,4 +1,4 @@
 vrep-ros
 ========
 
-vrep ros plugin
+Vrep ROS plugin with customized commands to import meshes from ROS.
