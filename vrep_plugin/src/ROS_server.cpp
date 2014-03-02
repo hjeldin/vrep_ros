@@ -200,6 +200,7 @@ ros::ServiceServer ROS_server::simRosGetAndClearStringSignalServer;
 ros::ServiceServer ROS_server::simRosGetObjectGroupDataServer;
 ros::ServiceServer ROS_server::simRosImportMeshServer;
 ros::ServiceServer ROS_server::simRosCreateCubeServer;
+ros::ServiceServer ROS_server::simRosImportCubeMapServer;
 
 bool ROS_server::initialize()
 {
@@ -1958,6 +1959,7 @@ void ROS_server::enableAPIServices()
 	simRosImportMeshServer = node->advertiseService("simRosImportMesh",ROS_server::simRosImportMeshService);
 
 	simRosCreateCubeServer = node->advertiseService("simRosCreateCube",ROS_server::simRosCreateCubeService);
+	simRosImportCubeMapServer = node->advertiseService("simRosImportCubeMap", ROS_server::simRosImportCubeMapService);
 }
 
 void ROS_server::disableAPIServices()
@@ -2060,6 +2062,7 @@ void ROS_server::disableAPIServices()
 	simRosGetObjectGroupDataServer.shutdown();
 	simRosImportMeshServer.shutdown();
 	simRosCreateCubeServer.shutdown();
+	simRosImportCubeMapServer.shutdown();
 	_last50Errors.clear();
 }
 int ROS_server::_handleServiceErrors_start()
@@ -3364,9 +3367,9 @@ bool ROS_server::simRosCreateCubeService(vrep_common::simRosCreateCube::Request 
 	simFloat cuboidSize;
 	simInt relativeToObj;
 	simFloat position[3] = {req.x,req.y,req.z};
-	simFloat sizes[3] = {req.size,req.size,req.size};
+	simFloat sizes[3] = {req.size,req.size,req.size+0.5};
 	unsigned char bitmask = 0;
-	bitmask |= (1<<3);
+	//bitmask |= (1<<3);
 	bitmask |= (1<<4);
 	simInt cuboidHandle = simCreatePureShape(0,bitmask,sizes,req.mass,NULL);
 	if(cuboidHandle != -1)
@@ -3412,4 +3415,46 @@ bool ROS_server::simRosImportMeshService(vrep_common::simRosImportMesh::Request 
 	//res.intData.push_back(1);
 	_handleServiceErrors_end(errorModeSaved);
 	return true;
+}
+
+bool ROS_server::simRosImportCubeMapService(vrep_common::simRosImportCubeMap::Request &req,vrep_common::simRosImportCubeMap::Response &res)
+{
+	int errorModeSaved = _handleServiceErrors_start();
+	bool result = false;
+	//create parent id
+	simInt dummyID = simCreateDummy(0.1f,NULL);
+	//enable omp for parallel computation? we'll see that
+	//#pragma omp parallel for
+	for(int i = 0; i < req.grid.data.size(); i++)
+	{
+		int y = (int)(i/req.grid.info.width);
+		int x = (int) i - (y*req.grid.info.width);
+		//center the point
+		float halfWidth = (req.grid.info.width * req.grid.info.resolution)/2.0f;
+		float halfHeight = (req.grid.info.height * req.grid.info.resolution)/2.0f;
+		if(req.grid.data[i] > 80){
+			float px = (float)(((float)x)*0.05f) - halfWidth;
+	    	float py = (float)(((float)y)*0.05f) - halfHeight;
+			simFloat position[3] = {px,py,0.1f};
+			simFloat sizes[3] = {0.05f,0.05f,0.1f};
+			unsigned char bitmask = 0;
+			bitmask |= (1<<3);
+			bitmask |= (1<<4);
+			simInt cuboidHandle = simCreatePureShape(0,bitmask,sizes,1.0f,NULL);
+			if(cuboidHandle != -1)
+			{
+				if(	simSetObjectSpecialProperty(cuboidHandle,
+					sim_objectspecialproperty_collidable |
+					sim_objectspecialproperty_measurable |
+					sim_objectspecialproperty_detectable_all |
+					sim_objectspecialproperty_renderable) != -1 && 
+					simSetObjectParent(cuboidHandle,dummyID,true) != -1 && 
+					simSetObjectPosition(cuboidHandle,-1,position) != -1)
+					result = true;
+			}
+		}
+	}
+	res.handle = dummyID;
+	_handleServiceErrors_end(errorModeSaved);
+	return result;
 }

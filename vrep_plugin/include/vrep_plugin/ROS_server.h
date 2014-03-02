@@ -160,6 +160,7 @@
 #include "vrep_common/simRosImportMesh.h"
 
 #include "vrep_common/simRosCreateCube.h"
+#include "vrep_common/simRosImportCubeMap.h"
 
 class SSpecificPublisherData 
 {
@@ -541,6 +542,9 @@ class ROS_server
 
 		static ros::ServiceServer simRosCreateCubeServer;
 		static bool simRosCreateCubeService(vrep_common::simRosCreateCube::Request &req,vrep_common::simRosCreateCube::Response &res);
+
+		static ros::ServiceServer simRosImportCubeMapServer;
+		static bool simRosImportCubeMapService(vrep_common::simRosImportCubeMap::Request &req,vrep_common::simRosImportCubeMap::Response &res);
 };
 
 #endif

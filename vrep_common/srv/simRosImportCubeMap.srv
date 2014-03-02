@@ -1,0 +1,8 @@
+#
+# simRosImportCubeMap
+#
+
+nav_msgs/OccupancyGrid grid
+---
+int32 result
+int32 handle
